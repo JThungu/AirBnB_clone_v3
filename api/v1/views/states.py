@@ -14,12 +14,14 @@ def states():
 
 
 @app_views.route('/states/<state_id>', methods=['GET'], strict_slashes=False)
-def r_state_id(state_id):
+def view_one_state(state_id=None):
     """ Retrieves a State object """
-    state = storage.get("State", state_id)
-    if not state:
+if state_id is None:
         abort(404)
-    return jsonify(state.to_dict())
+    state = storage.get("State", state_id)
+    if state is None:
+        abort(404)
+    return jsonify(state.to_json())
 
 
 @app_views.route('/states/<state_id>', methods=['DELETE'],
