@@ -18,8 +18,6 @@ def r_state_id(state_id):
     """ Retrieves a State object """
 
 
-if state_id:
-    abort(404)
     state = storage.get("State", state_id)
 if not state:
     abort(404)
