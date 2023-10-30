@@ -16,13 +16,9 @@ def states():
 @app_views.route('/states/<state_id>', methods=['GET'], strict_slashes=False)
 def r_state_id(state_id):
     """ Retrieves a State object """
-
-
-state = storage.get("State", state_id)
-
-
-if not state:
-    abort(404)
+    state = storage.get("State", state_id)
+    if not state:
+        abort(404)
     return jsonify(state.to_dict())
 
 
