@@ -1,84 +1,88 @@
 #!/usr/bin/python3
-""" View for Amenity objects default API actions """
-from flask import jsonify, abort, make_response, request
-from api.v1.views import app_views
+"""View for Amenity objects default API actions"""
+
+
+from models.place import Place
 from models.amenity import Amenity
 from models import storage
+from api.v1.views import app_views
+from os import environ
+from flask import abort, jsonify, make_response, request
+from flasgger.utils import swag_from
 
 
-ALLOWED_METHODS = ['GET', 'DELETE', 'POST', 'PUT']
-'''Methods allowed for the amenities endpoint.'''
+@app_views.route('places/<place_id>/amenities', methods=['GET'],
+                 strict_slashes=False)
+@swag_from('documentation/place_amenity/get_places_amenities.yml',
+           methods=['GET'])
+def get_place_amenities(place_id):
+    place = storage.get(Place, place_id)
 
+    if not place:
+        abort(404)
 
-@app_views.route('/amenities', methods=ALLOWED_METHODS)
-@app_views.route('/amenities/<amenity_id>', methods=ALLOWED_METHODS)
-def handle_amenities(amenity_id=None):
-    '''The method handler for the amenities endpoint.
-    '''
-    handlers = {
-        'GET': get_amenities,
-        'DELETE': remove_amenity,
-        'POST': add_amenity,
-        'PUT': update_amenity,
-    }
-    if request.method in handlers:
-        return handlers[request.method](amenity_id)
+    if environ.get('HBNB_TYPE_STORAGE') == "db":
+        amenities = [amenity.to_dict() for amenity in place.amenities]
     else:
-        raise MethodNotAllowed(list(handlers.keys()))
+        amenities = [storage.get(Amenity, amenity_id).to_dict()
+                     for amenity_id in place.amenity_ids]
+
+    return jsonify(amenities)
 
 
-def get_amenities(amenity_id=None):
-    '''Gets the amenity with the given id or all amenities.
-    '''
-    all_amenities = storage.all(Amenity).values()
-    if amenity_id:
-        res = list(filter(lambda x: x.id == amenity_id, all_amenities))
-        if res:
-            return jsonify(res[0].to_dict())
-        raise NotFound()
-    all_amenities = list(map(lambda x: x.to_dict(), all_amenities))
-    return jsonify(all_amenities)
+@app_views.route('/places/<place_id>/amenities/<amenity_id>',
+                 methods=['DELETE'], strict_slashes=False)
+@swag_from('documentation/place_amenity/delete_place_amenities.yml',
+           methods=['DELETE'])
+def delete_place_amenity(place_id, amenity_id):
+    place = storage.get(Place, place_id)
+
+    if not place:
+        abort(404)
+
+    amenity = storage.get(Amenity, amenity_id)
+
+    if not amenity:
+        abort(404)
+
+    if environ.get('HBNB_TYPE_STORAGE') == "db":
+        if amenity not in place.amenities:
+            abort(404)
+        place.amenities.remove(amenity)
+    else:
+        if amenity_id not in place.amenity_ids:
+            abort(404)
+        place.amenity_ids.remove(amenity_id)
+
+    storage.save()
+    return make_response(jsonify({}), 200)
 
 
-def remove_amenity(amenity_id=None):
-    '''Removes a amenity with the given id.
-    '''
-    all_amenities = storage.all(Amenity).values()
-    res = list(filter(lambda x: x.id == amenity_id, all_amenities))
-    if res:
-        storage.delete(res[0])
-        storage.save()
-        return jsonify({}), 200
-    raise NotFound()
+@app_views.route('/places/<place_id>/amenities/<amenity_id>', methods=['POST'],
+                 strict_slashes=False)
+@swag_from('documentation/place_amenity/post_place_amenities.yml',
+           methods=['POST'])
+def post_place_amenity(place_id, amenity_id):
+    place = storage.get(Place, place_id)
 
+    if not place:
+        abort(404)
 
-def add_amenity(amenity_id=None):
-    '''Adds a new amenity.
-    '''
-    data = request.get_json()
-    if type(data) is not dict:
-        raise BadRequest(description='Not a JSON')
-    if 'name' not in data:
-        raise BadRequest(description='Missing name')
-    new_amenity = Amenity(**data)
-    new_amenity.save()
-    return jsonify(new_amenity.to_dict()), 201
+    amenity = storage.get(Amenity, amenity_id)
 
+    if not amenity:
+        abort(404)
 
-def update_amenity(amenity_id=None):
-    '''Updates the amenity with the given id.
-    '''
-    xkeys = ('id', 'created_at', 'updated_at')
-    all_amenities = storage.all(Amenity).values()
-    res = list(filter(lambda x: x.id == amenity_id, all_amenities))
-    if res:
-        data = request.get_json()
-        if type(data) is not dict:
-            raise BadRequest(description='Not a JSON')
-        old_amenity = res[0]
-        for key, value in data.items():
-            if key not in xkeys:
-                setattr(old_amenity, key, value)
-        old_amenity.save()
-        return jsonify(old_amenity.to_dict()), 200
-    raise NotFound()
+    if environ.get('HBNB_TYPE_STORAGE') == "db":
+        if amenity in place.amenities:
+            return make_response(jsonify(amenity.to_dict()), 200)
+        else:
+            place.amenities.append(amenity)
+    else:
+        if amenity_id in place.amenity_ids:
+            return make_response(jsonify(amenity.to_dict()), 200)
+        else:
+            place.amenity_ids.append(amenity_id)
+
+    storage.save()
+    return make_response(jsonify(amenity.to_dict()), 201)
