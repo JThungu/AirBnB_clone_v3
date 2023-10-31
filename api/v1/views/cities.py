@@ -1,9 +1,11 @@
 #!/usr/bin/python3
 """ View for City objects default API actions """
 from flask import jsonify, abort, make_response, request
-from models import storage
 from api.v1.views import app_views
+from models import storage, storage_t
 from models.city import City
+from models.place import Place
+from models.review import Review
 from models.state import State
 
 
