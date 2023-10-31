@@ -39,7 +39,8 @@ def update_state(state_id):
     if state_id in states:
         data = request.get_json()
         if data:
-            states[state_id]['name'] = data.get('name', states[state_id]['name'])
+            states[state_id]['name'] = data.get
+            ('name', states[state_id]['name'])
             return jsonify(states[state_id]), 200
         else:
             abort(400, 'Invalid data')
