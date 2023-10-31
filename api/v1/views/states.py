@@ -4,7 +4,10 @@ Create a new view for State objects - handles all default RESTful API actions.
 """
 
 # Import necessary modules
-from flask import Flask, jsonify, request, abort
+from flask import abort, jsonify, request
+from models.state import State
+from api.v1.views import app_views
+from models import storage
 
 app = Flask(__name__)
 states = {}
