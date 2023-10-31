@@ -81,6 +81,7 @@ def create_state():
     # Return the newly created State object in JSON format with 201 status code
     return jsonify(state.to_dict()), 201
 
+
 # Route for updating an existing State object by ID
 @app_views.route('/states/<state_id>', methods=['PUT'], strict_slashes=False)
 def update_state(state_id):
@@ -110,6 +111,7 @@ def update_state(state_id):
         # Return 404 error if the State object is not found
         abort(404)
 
+
 # Error Handlers:
 
 @app_views.errorhandler(404)
@@ -120,6 +122,7 @@ def not_found(error):
     # Return a JSON response for 404 error
     response = {'error': 'Not found'}
     return jsonify(response), 404
+
 
 @app_views.errorhandler(400)
 def bad_request(error):
