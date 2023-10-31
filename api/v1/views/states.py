@@ -1,11 +1,9 @@
 #!/usr/bin/python3
 """View for State objects default API actions"""
-
-# Import necessary modules
-from flask import abort, jsonify, request
+from models import storage
 from models.state import State
 from api.v1.views import app_views
-from models import storage
+from flask import jsonify, abort, make_response, request
 
 
 # Route for retrieving all State objects
