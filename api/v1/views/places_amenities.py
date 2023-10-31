@@ -1,12 +1,13 @@
 #!/usr/bin/python3
 """ default RestFul API actions for Place - Amenity """
+from models import storage
+from os import getenv
 from flask import abort, jsonify, make_response
 from api.v1.views import app_views
-from models import storage
-from models import amenity
-from models.amenity import Amenity
 from models.place import Place
-from os import getenv
+from models.amenity import Amenity
+from models import amenity
+from flasgger.utils import swag_from
 
 
 @app_views.route('/places/<place_id>/amenities',
