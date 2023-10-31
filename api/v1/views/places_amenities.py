@@ -6,6 +6,8 @@ from flask import abort, jsonify, make_response, request
 from api.v1.views import app_views
 from models.place import Place
 from models.amenity import Amenity
+from models import amenity
+from flasgger.utils import swag_from
 
 
 @app_views.route('/places/<place_id>/amenities',
