@@ -4,6 +4,7 @@ from models import storage
 from models.state import State
 from api.v1.views import app_views
 from flask import jsonify, abort, make_response, request
+from werkzeug.exceptions import NotFound, MethodNotAllowed, BadRequest
 
 
 @app_views.route('/states', methods=['GET'], strict_slashes=False)
