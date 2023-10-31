@@ -1,67 +1,88 @@
 #!/usr/bin/python3
-""" View for User objects default API actions """
-from api.v1.views import app_views
-from flask import abort, jsonify, make_response, request
-from models import storage
+'''View for User objects default API actions'''
+
+# Import necessary modules
+from flask import abort, jsonify, request
+# Import the User model
 from models.user import User
+from api.v1.views import app_views
+from models import storage
 
 
+# Route for retrieving all User objects
 @app_views.route('/users', methods=['GET'], strict_slashes=False)
-def get_users():
-    """get user information for all users"""
-    users = []
-    for user in storage.all("User").values():
-        users.append(user.to_dict())
-    return jsonify(users)
+def get_all_users():
+    users = storage.all(User).values()
+    return jsonify([user.to_dict() for user in users])
 
 
-@app_views.route('/users/<string:user_id>', methods=['GET'],
-                 strict_slashes=False)
+# Route for retrieving a specific User object by ID
+@app_views.route('/users/<user_id>', methods=['GET'], strict_slashes=False)
 def get_user(user_id):
-    """get user information for specified user"""
-    user = storage.get("User", user_id)
-    if user is None:
+    user = storage.get(User, user_id)
+    if user:
+        return jsonify(user.to_dict())
+    else:
         abort(404)
-    return jsonify(user.to_dict())
 
 
-@app_views.route('/users/<string:user_id>', methods=['DELETE'],
-                 strict_slashes=False)
+# Route for deleting a specific User object by ID
+@app_views.route('/users/<user_id>', methods=['DELETE'])
 def delete_user(user_id):
-    """deletes a user based on its user_id"""
-    user = storage.get("User", user_id)
-    if user is None:
+    user = storage.get(User, user_id)
+    if user:
+        storage.delete(user)
+        storage.save()
+        return jsonify({}), 200
+    else:
         abort(404)
-    user.delete()
-    storage.save()
-    return (jsonify({}))
 
 
+# Route for creating a new User object
 @app_views.route('/users', methods=['POST'], strict_slashes=False)
-def post_user():
-    """create a new user"""
+def create_user():
     if not request.get_json():
-        return make_response(jsonify({'error': 'Not a JSON'}), 400)
-    if 'email' not in request.get_json():
-        return make_response(jsonify({'error': 'Missing email'}), 400)
-    if 'password' not in request.get_json():
-        return make_response(jsonify({'error': 'Missing password'}), 400)
-    user = User(**request.get_json())
+        abort(400, 'Not a JSON')
+
+    data = request.get_json()
+    if 'email' not in data:
+        abort(400, 'Missing email')
+    if 'password' not in data:
+        abort(400, 'Missing password')
+
+    user = User(**data)
     user.save()
-    return make_response(jsonify(user.to_dict()), 201)
+    return jsonify(user.to_dict()), 201
 
 
-@app_views.route('/users/<string:user_id>', methods=['PUT'],
-                 strict_slashes=False)
-def put_user(user_id):
-    """update a user"""
-    user = storage.get("User", user_id)
-    if user is None:
+# Route for updating an existing User object by ID
+@app_views.route('/users/<user_id>', methods=['PUT'], strict_slashes=False)
+def update_user(user_id):
+    user = storage.get(User, user_id)
+    if user:
+        if not request.get_json():
+            abort(400, 'Not a JSON')
+
+        data = request.get_json()
+        ignore_keys = ['id', 'email', 'created_at', 'updated_at']
+        for key, value in data.items():
+            if key not in ignore_keys:
+                setattr(user, key, value)
+
+        user.save()
+        return jsonify(user.to_dict()), 200
+    else:
         abort(404)
-    if not request.get_json():
-        return make_response(jsonify({'error': 'Not a JSON'}), 400)
-    for attr, val in request.get_json().items():
-        if attr not in ['id', 'email', 'created_at', 'updated_at']:
-            setattr(user, attr, val)
-    user.save()
-    return jsonify(user.to_dict())
+
+
+# Error Handlers:
+@app_views.errorhandler(404)
+def not_found(error):
+    response = {'error': 'Not found'}
+    return jsonify(response), 404
+
+
+@app_views.errorhandler(400)
+def bad_request(error):
+    response = {'error': 'Bad Request'}
+    return jsonify(response), 400
