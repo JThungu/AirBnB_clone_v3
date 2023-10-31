@@ -2,11 +2,11 @@
 '''View for User objects default API actions'''
 
 # Import necessary modules
-from flask import abort, jsonify, request
-# Import the User model
-from models.user import User
-from api.v1.views import app_views
 from models import storage
+from models.user import User
+import hashlib
+from api.v1.views import app_views
+from flask import jsonify, abort, make_response, request
 
 
 # Route for retrieving all User objects
