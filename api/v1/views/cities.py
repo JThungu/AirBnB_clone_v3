@@ -82,6 +82,7 @@ def update_city(city_id):
     else:
         abort(404)
 
+
 @app_views.errorhandler(404)
 def not_found(error):
     return jsonify({'error': 'Not found'}), 404
