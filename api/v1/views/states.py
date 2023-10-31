@@ -34,7 +34,7 @@ def del_state(state_id=None):
     return make_response(jsonify({}), 200)
 
 
-@app_views.route('/states/<state_id>', methods=['POST'], strict_slashes=False)
+@app_views.route('/states', methods=['POST'], strict_slashes=False)
 def post_state():
     """ Creates a State object """
     new_state = request.get_json()
