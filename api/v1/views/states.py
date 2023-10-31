@@ -7,7 +7,7 @@ from flask import jsonify, abort, make_response, request
 
 
 @app_views.route('/states', methods=['GET'], strict_slashes=False)
-def states():
+def states(state_id=None):
     """ Retrieves the list of all State objects """
     d_states = storage.all(State)
     return jsonify([obj.to_dict() for obj in d_states.values()])
