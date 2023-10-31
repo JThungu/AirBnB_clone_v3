@@ -3,7 +3,6 @@
 from models import storage
 from os import environ
 from flask import abort, jsonify, make_response, request
-from flasgger.utils import swag_from
 from api.v1.views import app_views
 from models.place import Place
 from models.amenity import Amenity
