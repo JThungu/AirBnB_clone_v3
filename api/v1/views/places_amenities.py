@@ -2,7 +2,7 @@
 """ default RestFul API actions for Place - Amenity """
 from models import storage
 from os import environ
-from flask import abort, jsonify, make_response, request
+from flask import abort, jsonify, make_response
 from api.v1.views import app_views
 from models.place import Place
 from models.amenity import Amenity
